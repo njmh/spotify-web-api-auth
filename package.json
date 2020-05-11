@@ -1,0 +1,29 @@
+{
+  "name": "spotify-web-api-auth",
+  "version": "1.0.0",
+  "description": "A super simple Node.js Express app to request a Spotify Web API token using the Authorization Code Flow (https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow).",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "Nick Morton (https://github.com/njmh)",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^0.19.2",
+    "cookie-parser": "^1.4.5",
+    "cors": "^2.8.5",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "querystring": "^0.2.0",
+    "uniqid": "^5.2.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/njmh/spotify-web-api-auth.git"
+  },
+  "keywords": [
+    "node",
+    "spotify",
+    "spotify-web-api"
+  ]
+}
