@@ -6,7 +6,7 @@ const cookieParser = require('cookie-parser');
 const axios = require('axios');
 const uniqid = require('uniqid');
 
-const PORT = process.env.PORT || 8888;
+const PORT = process.env.PORT || null;
 
 const client_id = process.env.SPOTIFY_CLIENT_ID;
 const client_secret = process.env.SPOTIFY_CLIENT_SECRET;
@@ -29,21 +29,25 @@ const defaultScope = [
 const defaultReturnUrl = '/result';
 const validReturnUrls = process.env.VALID_RETURN_URLS ? process.env.VALID_RETURN_URLS.split(',') : [];
 
+function appUrl(url, req) {
+  return `${req.protocol}://${req.hostname}${PORT ? `:${PORT}` : ''}${url}`;
+}
+
 function redirectUri(req) {
-  return `${req.protocol}://${req.hostname}:${PORT}/callback`;
+  return appUrl('/callback', req);
 }
 
 function requestParams(req) {
   const scope = (req.query.scope ? req.query.scope.split(',') : undefined) || defaultScope;
-  const returnUrl = req.query.returnUrl || defaultReturnUrl;
+  const returnUrl = req.query.returnUrl || appUrl(defaultReturnUrl, req);
   return {
     scope,
     returnUrl,
   };
 }
 
-function validReturnUrl(returnUrl) {
-  if (returnUrl === defaultReturnUrl) return true;
+function validReturnUrl(returnUrl, req) {
+  if (returnUrl === appUrl(defaultReturnUrl, req)) return true;
   if (validReturnUrls.indexOf(returnUrl) > -1) return true;
   return false;
 }
@@ -53,7 +57,34 @@ function result(res, returnUrl = defaultReturnUrl, params = {}) {
 }
 
 const app = express();
+app.enable('trust proxy'); // for Heroku
 app.use(cors()).use(cookieParser());
+
+app.get('/debug', function(req, res) {
+
+  const state = uniqid();
+  const redirect_uri = redirectUri(req);
+  const { scope, returnUrl } = requestParams(req);
+
+  const authQuery = {
+    response_type: 'code',
+    scope: scope.join(' '),
+    client_id,
+    redirect_uri,
+    state,
+  };
+
+  const authUrl = `${spotifyAuthUrl}?${querystring.stringify(authQuery)}`;
+
+  return res.send({
+    PORT,
+    redirect_uri,
+    returnUrl,
+    scope,
+    authQuery,
+    authUrl,
+  });
+});
 
 app.get('/login', function(req, res) {
 
@@ -62,7 +93,7 @@ app.get('/login', function(req, res) {
   const { scope, returnUrl } = requestParams(req);
 
   // check if valid return URI
-  if (!validReturnUrl(returnUrl)) {
+  if (!validReturnUrl(returnUrl, req)) {
     res.status(403).send('Invalid return URI');
     return;
   }
