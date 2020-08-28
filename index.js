@@ -30,7 +30,7 @@ const defaultReturnUrl = '/result';
 const validReturnUrls = process.env.VALID_RETURN_URLS ? process.env.VALID_RETURN_URLS.split(',') : [];
 
 function appUrl(url, req) {
-  return `${req.protocol}://${req.hostname}${PORT ? `:${PORT}` : ''}${url}`;
+  return `${req.protocol}://${req.get('host')}${url}`;
 }
 
 function redirectUri(req) {
